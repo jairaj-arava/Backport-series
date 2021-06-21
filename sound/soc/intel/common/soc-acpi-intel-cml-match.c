@@ -114,7 +114,7 @@ static const struct snd_soc_acpi_endpoint spk_r_endpoint = {
 
 static const struct snd_soc_acpi_adr_device rt700_1_adr[] = {
 	{
-		.adr = 0x000110025D070000,
+		.adr = 0x000110025D070000ull,
 		.num_endpoints = 1,
 		.endpoints = &single_endpoint,
 		.name_prefix = "rt700"
@@ -132,7 +132,7 @@ static const struct snd_soc_acpi_link_adr cml_rvp[] = {
 
 static const struct snd_soc_acpi_adr_device rt711_0_adr[] = {
 	{
-		.adr = 0x000020025D071100,
+		.adr = 0x000020025D071100ull,
 		.num_endpoints = 1,
 		.endpoints = &single_endpoint,
 		.name_prefix = "rt711"
@@ -141,7 +141,7 @@ static const struct snd_soc_acpi_adr_device rt711_0_adr[] = {
 
 static const struct snd_soc_acpi_adr_device rt1308_1_single_adr[] = {
 	{
-		.adr = 0x000120025D130800,
+		.adr = 0x000120025D130800ull,
 		.num_endpoints = 1,
 		.endpoints = &single_endpoint,
 		.name_prefix = "rt1308-1"
@@ -150,7 +150,7 @@ static const struct snd_soc_acpi_adr_device rt1308_1_single_adr[] = {
 
 static const struct snd_soc_acpi_adr_device rt1308_1_group1_adr[] = {
 	{
-		.adr = 0x000120025D130800,
+		.adr = 0x000120025D130800ull,
 		.num_endpoints = 1,
 		.endpoints = &spk_l_endpoint,
 		.name_prefix = "rt1308-1"
@@ -159,7 +159,7 @@ static const struct snd_soc_acpi_adr_device rt1308_1_group1_adr[] = {
 
 static const struct snd_soc_acpi_adr_device rt1308_2_group1_adr[] = {
 	{
-		.adr = 0x000220025D130800,
+		.adr = 0x000220025D130800ull,
 		.num_endpoints = 1,
 		.endpoints = &spk_r_endpoint,
 		.name_prefix = "rt1308-2"
@@ -168,7 +168,7 @@ static const struct snd_soc_acpi_adr_device rt1308_2_group1_adr[] = {
 
 static const struct snd_soc_acpi_adr_device rt715_3_adr[] = {
 	{
-		.adr = 0x000320025D071500,
+		.adr = 0x000320025D071500ull,
 		.num_endpoints = 1,
 		.endpoints = &single_endpoint,
 		.name_prefix = "rt715"
@@ -177,7 +177,7 @@ static const struct snd_soc_acpi_adr_device rt715_3_adr[] = {
 
 static const struct snd_soc_acpi_adr_device rt711_sdca_0_adr[] = {
 	{
-		.adr = 0x000030025D071101,
+		.adr = 0x000030025D071101ull,
 		.num_endpoints = 1,
 		.endpoints = &single_endpoint,
 		.name_prefix = "rt711"
@@ -186,7 +186,7 @@ static const struct snd_soc_acpi_adr_device rt711_sdca_0_adr[] = {
 
 static const struct snd_soc_acpi_adr_device rt1316_1_group1_adr[] = {
 	{
-		.adr = 0x000131025D131601, /* unique ID is set for some reason */
+		.adr = 0x000131025D131601ull, /* unique ID is set for some reason */
 		.num_endpoints = 1,
 		.endpoints = &spk_l_endpoint,
 		.name_prefix = "rt1316-1"
@@ -195,7 +195,7 @@ static const struct snd_soc_acpi_adr_device rt1316_1_group1_adr[] = {
 
 static const struct snd_soc_acpi_adr_device rt1316_2_group1_adr[] = {
 	{
-		.adr = 0x000230025D131601,
+		.adr = 0x000230025D131601ull,
 		.num_endpoints = 1,
 		.endpoints = &spk_r_endpoint,
 		.name_prefix = "rt1316-2"
@@ -204,7 +204,7 @@ static const struct snd_soc_acpi_adr_device rt1316_2_group1_adr[] = {
 
 static const struct snd_soc_acpi_adr_device rt714_3_adr[] = {
 	{
-		.adr = 0x000330025D071401,
+		.adr = 0x000330025D071401ull,
 		.num_endpoints = 1,
 		.endpoints = &single_endpoint,
 		.name_prefix = "rt714"
