@@ -1649,7 +1649,7 @@ static void dapm_seq_run(struct snd_soc_card *card,
 	int cur_subseq = -1;
 	int cur_reg = SND_SOC_NOPM;
 	struct snd_soc_dapm_context *cur_dapm = NULL;
-	int ret, i;
+	int i;
 	int *sort;
 
 	if (power_up)
@@ -1658,7 +1658,7 @@ static void dapm_seq_run(struct snd_soc_card *card,
 		sort = dapm_down_seq;
 
 	list_for_each_entry_safe(w, n, list, power_list) {
-		ret = 0;
+		int ret = 0;
 
 		/* Do we need to apply any queued changes? */
 		if (sort[w->id] != cur_sort || w->reg != cur_reg ||
