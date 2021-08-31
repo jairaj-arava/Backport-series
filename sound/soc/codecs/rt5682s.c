@@ -830,7 +830,6 @@ static void rt5682s_jack_detect_handler(struct work_struct *work)
 {
 	struct rt5682s_priv *rt5682s =
 		container_of(work, struct rt5682s_priv, jack_detect_work.work);
-	struct snd_soc_dapm_context *dapm;
 	int val, btn_type;
 
 	while (!rt5682s->component)
@@ -839,9 +838,6 @@ static void rt5682s_jack_detect_handler(struct work_struct *work)
 	while (!rt5682s->component->card->instantiated)
 		usleep_range(10000, 15000);
 
-	dapm = snd_soc_component_get_dapm(rt5682s->component);
-
-	snd_soc_dapm_mutex_lock(dapm);
 	mutex_lock(&rt5682s->calibrate_mutex);
 
 	val = snd_soc_component_read(rt5682s->component, RT5682S_AJD1_CTRL)
@@ -898,9 +894,6 @@ static void rt5682s_jack_detect_handler(struct work_struct *work)
 		rt5682s->irq_work_delay_time = 50;
 	}
 
-	mutex_unlock(&rt5682s->calibrate_mutex);
-	snd_soc_dapm_mutex_unlock(dapm);
-
 	snd_soc_jack_report(rt5682s->hs_jack, rt5682s->jack_type,
 		SND_JACK_HEADSET | SND_JACK_BTN_0 | SND_JACK_BTN_1 |
 		SND_JACK_BTN_2 | SND_JACK_BTN_3);
@@ -910,6 +903,8 @@ static void rt5682s_jack_detect_handler(struct work_struct *work)
 		schedule_delayed_work(&rt5682s->jd_check_work, 0);
 	else
 		cancel_delayed_work_sync(&rt5682s->jd_check_work);
+
+	mutex_unlock(&rt5682s->calibrate_mutex);
 }
 
 static void rt5682s_jd_check_handler(struct work_struct *work)
@@ -917,9 +912,14 @@ static void rt5682s_jd_check_handler(struct work_struct *work)
 	struct rt5682s_priv *rt5682s =
 		container_of(work, struct rt5682s_priv, jd_check_work.work);
 
-	if (snd_soc_component_read(rt5682s->component, RT5682S_AJD1_CTRL) & RT5682S_JDH_RS_MASK) {
+	if (snd_soc_component_read(rt5682s->component, RT5682S_AJD1_CTRL)
+		& RT5682S_JDH_RS_MASK) {
 		/* jack out */
-		schedule_delayed_work(&rt5682s->jack_detect_work, 0);
+		rt5682s->jack_type = rt5682s_headset_detect(rt5682s->component, 0);
+
+		snd_soc_jack_report(rt5682s->hs_jack, rt5682s->jack_type,
+			SND_JACK_HEADSET | SND_JACK_BTN_0 | SND_JACK_BTN_1 |
+			SND_JACK_BTN_2 | SND_JACK_BTN_3);
 	} else {
 		schedule_delayed_work(&rt5682s->jd_check_work, 500);
 	}
