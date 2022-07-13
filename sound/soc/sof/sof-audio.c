@@ -802,6 +802,7 @@ static int sof_tear_down_left_over_pipelines(struct snd_sof_dev *sdev)
  */
 int sof_tear_down_pipelines(struct snd_sof_dev *sdev, bool verify)
 {
+	struct sof_ipc_fw_version *v = &sdev->fw_ready.version;
 	struct snd_sof_widget *swidget;
 	struct snd_sof_route *sroute;
 	int ret;
