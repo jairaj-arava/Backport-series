@@ -390,21 +390,27 @@ sdw_nread_no_pm(struct sdw_slave *slave, u32 addr, size_t count, u8 *val)
 	if (ret < 0)
 		return ret;
 
-	return sdw_transfer(slave->bus, &msg);
+	ret = sdw_transfer(slave->bus, &msg);
+	if (slave->is_mockup_device)
+		ret = 0;
+	return ret;
 }
 
 static int
-sdw_nwrite_no_pm(struct sdw_slave *slave, u32 addr, size_t count, u8 *val)
+sdw_nwrite_no_pm(struct sdw_slave *slave, u32 addr, size_t count, const u8 *val)
 {
 	struct sdw_msg msg;
 	int ret;
 
 	ret = sdw_fill_msg(&msg, slave, addr, count,
-			   slave->dev_num, SDW_MSG_FLAG_WRITE, val);
+			   slave->dev_num, SDW_MSG_FLAG_WRITE, (u8 *)val);
 	if (ret < 0)
 		return ret;
 
-	return sdw_transfer(slave->bus, &msg);
+	ret = sdw_transfer(slave->bus, &msg);
+	if (slave->is_mockup_device)
+		ret = 0;
+	return ret;
 }
 
 int sdw_write_no_pm(struct sdw_slave *slave, u32 addr, u8 value)
@@ -550,9 +556,9 @@ EXPORT_SYMBOL(sdw_nread);
  * @slave: SDW Slave
  * @addr: Register address
  * @count: length
- * @val: Buffer for values to be read
+ * @val: Buffer for values to be written
  */
-int sdw_nwrite(struct sdw_slave *slave, u32 addr, size_t count, u8 *val)
+int sdw_nwrite(struct sdw_slave *slave, u32 addr, size_t count, const u8 *val)
 {
 	int ret;
 
@@ -896,7 +902,8 @@ static int sdw_bus_wait_for_clk_prep_deprep(struct sdw_bus *bus, u16 dev_num)
 	do {
 		val = sdw_bread_no_pm(bus, dev_num, SDW_SCP_STAT);
 		if (val < 0) {
-			dev_err(bus->dev, "SDW_SCP_STAT bread failed:%d\n", val);
+			if (val != -ENODATA)
+				dev_err(bus->dev, "SDW_SCP_STAT bread failed:%d\n", val);
 			return val;
 		}
 		val &= SDW_SCP_STAT_CLK_STP_NF;

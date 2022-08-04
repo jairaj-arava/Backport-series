@@ -586,6 +586,7 @@ struct cs42l42_pll_params {
  * Table 4-5 from the Datasheet
  */
 static const struct cs42l42_pll_params pll_ratio_table[] = {
+	{ 1411200, 0, 1, 0x00, 0x80, 0x000000, 0x03, 0x10, 11289600, 128, 2},
 	{ 1536000, 0, 1, 0x00, 0x7D, 0x000000, 0x03, 0x10, 12000000, 125, 2},
 	{ 2304000, 0, 1, 0x00, 0x55, 0xC00000, 0x02, 0x10, 12288000,  85, 2},
 	{ 2400000, 0, 1, 0x00, 0x50, 0x000000, 0x03, 0x10, 12000000,  80, 2},
@@ -807,6 +808,25 @@ static int cs42l42_set_dai_fmt(struct snd_soc_dai *codec_dai, unsigned int fmt)
 	return 0;
 }
 
+static int cs42l42_dai_startup(struct snd_pcm_substream *substream, struct snd_soc_dai *dai)
+{
+	struct snd_soc_component *component = dai->component;
+	struct cs42l42_private *cs42l42 = snd_soc_component_get_drvdata(component);
+
+	/*
+	 * Sample rates < 44.1 kHz would produce an out-of-range SCLK with
+	 * a standard I2S frame. If the machine driver sets SCLK it must be
+	 * legal.
+	 */
+	if (cs42l42->sclk)
+		return 0;
+
+	/* Machine driver has not set a SCLK, limit bottom end to 44.1 kHz */
+	return snd_pcm_hw_constraint_minmax(substream->runtime,
+					    SNDRV_PCM_HW_PARAM_RATE,
+					    44100, 192000);
+}
+
 static int cs42l42_pcm_hw_params(struct snd_pcm_substream *substream,
 				struct snd_pcm_hw_params *params,
 				struct snd_soc_dai *dai)
@@ -877,10 +897,23 @@ static int cs42l42_set_sysclk(struct snd_soc_dai *dai,
 {
 	struct snd_soc_component *component = dai->component;
 	struct cs42l42_private *cs42l42 = snd_soc_component_get_drvdata(component);
+	int i;
 
-	cs42l42->sclk = freq;
+	if (freq == 0) {
+		cs42l42->sclk = 0;
+		return 0;
+	}
 
-	return 0;
+	for (i = 0; i < ARRAY_SIZE(pll_ratio_table); i++) {
+		if (pll_ratio_table[i].sclk == freq) {
+			cs42l42->sclk = freq;
+			return 0;
+		}
+	}
+
+	dev_err(component->dev, "SCLK %u not supported\n", freq);
+
+	return -EINVAL;
 }
 
 static int cs42l42_mute_stream(struct snd_soc_dai *dai, int mute, int stream)
@@ -983,8 +1016,8 @@ static int cs42l42_mute_stream(struct snd_soc_dai *dai, int mute, int stream)
 			 SNDRV_PCM_FMTBIT_S24_LE |\
 			 SNDRV_PCM_FMTBIT_S32_LE)
 
-
 static const struct snd_soc_dai_ops cs42l42_ops = {
+	.startup	= cs42l42_dai_startup,
 	.hw_params	= cs42l42_pcm_hw_params,
 	.set_fmt	= cs42l42_set_dai_fmt,
 	.set_sysclk	= cs42l42_set_sysclk,
@@ -2211,4 +2244,7 @@ MODULE_DESCRIPTION("ASoC CS42L42 driver");
 MODULE_AUTHOR("James Schulman, Cirrus Logic Inc, <james.schulman@cirrus.com>");
 MODULE_AUTHOR("Brian Austin, Cirrus Logic Inc, <brian.austin@cirrus.com>");
 MODULE_AUTHOR("Michael White, Cirrus Logic Inc, <michael.white@cirrus.com>");
+MODULE_AUTHOR("Lucas Tanure <tanureal@opensource.cirrus.com>");
+MODULE_AUTHOR("Richard Fitzgerald <rf@opensource.cirrus.com>");
+MODULE_AUTHOR("Vitaly Rodionov <vitalyr@opensource.cirrus.com>");
 MODULE_LICENSE("GPL");

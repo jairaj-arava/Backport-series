@@ -2546,10 +2546,8 @@ static int sof_dai_load(struct snd_soc_component *scomp, int index,
 
 	for_each_pcm_streams(stream) {
 		spcm->stream[stream].comp_id = COMP_ID_UNASSIGNED;
-		if (pcm->compress)
-			snd_sof_compr_init_elapsed_work(&spcm->stream[stream].period_elapsed_work);
-		else
-			snd_sof_pcm_init_elapsed_work(&spcm->stream[stream].period_elapsed_work);
+		INIT_WORK(&spcm->stream[stream].period_elapsed_work,
+			  snd_sof_pcm_period_elapsed_work);
 	}
 
 	spcm->pcm = *pcm;
@@ -3344,7 +3342,7 @@ static int sof_link_load(struct snd_soc_component *scomp, int index,
 	/* Copy common data to all config ipc structs */
 	for (i = 0; i < num_conf; i++) {
 		config[i].hdr.cmd = SOF_IPC_GLB_DAI_MSG | SOF_IPC_DAI_CONFIG;
-		config[i].format = hw_config[i].fmt;
+		config[i].format = le32_to_cpu(hw_config[i].fmt);
 		config[i].type = common_config.type;
 		config[i].dai_index = common_config.dai_index;
 	}

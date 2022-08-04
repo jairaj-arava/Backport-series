@@ -602,14 +602,16 @@ snd_sof_set_mach_params(struct snd_soc_acpi_mach *mach,
 		(val) = snd_sof_dsp_read(sdev, bar, offset);		\
 		if (cond) { \
 			dev_dbg(sdev->dev, \
-				"FW Poll Status: reg=%#x successful\n", (val)); \
+				"FW Poll Status: reg[%#x]=%#x successful\n", \
+				(offset), (val)); \
 			break; \
 		} \
 		if (__timeout_us && \
 		    ktime_compare(ktime_get(), __timeout) > 0) { \
 			(val) = snd_sof_dsp_read(sdev, bar, offset); \
 			dev_dbg(sdev->dev, \
-				"FW Poll Status: reg=%#x timedout\n", (val)); \
+				"FW Poll Status: reg[%#x]=%#x timedout\n", \
+				(offset), (val)); \
 			break; \
 		} \
 		if (__sleep_us) \
