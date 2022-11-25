@@ -745,7 +745,7 @@ static int sof_get_ctrl_copy_params(enum sof_ipc_ctrl_type ctrl_type,
 static int sof_set_get_large_ctrl_data(struct snd_sof_dev *sdev,
 				       struct sof_ipc_ctrl_data *cdata,
 				       struct sof_ipc_ctrl_data_params *sparams,
-				       bool set)
+				       bool send)
 {
 	struct sof_ipc_ctrl_data *partdata;
 	size_t send_bytes;
@@ -760,7 +760,7 @@ static int sof_set_get_large_ctrl_data(struct snd_sof_dev *sdev,
 	if (!partdata)
 		return -ENOMEM;
 
-	if (set)
+	if (send)
 		err = sof_get_ctrl_copy_params(cdata->type, cdata, partdata,
 					       sparams);
 	else
@@ -789,7 +789,7 @@ static int sof_set_get_large_ctrl_data(struct snd_sof_dev *sdev,
 		msg_bytes -= send_bytes;
 		partdata->elems_remaining = msg_bytes;
 
-		if (set)
+		if (send)
 			memcpy(sparams->dst, sparams->src + offset, send_bytes);
 
 		err = sof_ipc_tx_message_unlocked(sdev->ipc,
@@ -801,7 +801,7 @@ static int sof_set_get_large_ctrl_data(struct snd_sof_dev *sdev,
 		if (err < 0)
 			break;
 
-		if (!set)
+		if (!send)
 			memcpy(sparams->dst + offset, sparams->src, send_bytes);
 
 		offset += pl_size;
@@ -819,7 +819,8 @@ static int sof_set_get_large_ctrl_data(struct snd_sof_dev *sdev,
 int snd_sof_ipc_set_get_comp_data(struct snd_sof_control *scontrol,
 				  u32 ipc_cmd,
 				  enum sof_ipc_ctrl_type ctrl_type,
-				  enum sof_ipc_ctrl_cmd ctrl_cmd, bool set)
+				  enum sof_ipc_ctrl_cmd ctrl_cmd,
+				  bool send)
 {
 	struct snd_soc_component *scomp = scontrol->scomp;
 	struct sof_ipc_ctrl_data *cdata = scontrol->control_data;
@@ -857,7 +858,7 @@ int snd_sof_ipc_set_get_comp_data(struct snd_sof_control *scontrol,
 		/* write/read value header via mmaped region */
 		send_bytes = sizeof(struct sof_ipc_ctrl_value_chan) *
 		cdata->num_elems;
-		if (set)
+		if (send)
 			err = snd_sof_dsp_block_write(sdev, SOF_FW_BLK_TYPE_IRAM,
 						      scontrol->readback_offset,
 						      cdata->chanv, send_bytes);
@@ -869,7 +870,7 @@ int snd_sof_ipc_set_get_comp_data(struct snd_sof_control *scontrol,
 
 		if (err)
 			dev_err_once(sdev->dev, "error: %s TYPE_IRAM failed\n",
-				     set ? "write to" :  "read from");
+				     send ? "write to" :  "read from");
 		return err;
 	}
 
@@ -933,7 +934,7 @@ int snd_sof_ipc_set_get_comp_data(struct snd_sof_control *scontrol,
 		return -EINVAL;
 	}
 
-	err = sof_set_get_large_ctrl_data(sdev, cdata, &sparams, set);
+	err = sof_set_get_large_ctrl_data(sdev, cdata, &sparams, send);
 
 	if (err < 0)
 		dev_err(sdev->dev, "error: set/get large ctrl ipc comp %d\n",
